@@ -15,7 +15,7 @@ module cic_dec_filter #(
     parameter M     = 1 ,           // Differential delay 1 or 2
     parameter N     = 3 ,           // Number of stages
     parameter BIN   = 12,           // Input data width
-    parameter BOUT  = 24            // 请在外部计算 BOUT=(BIN + $clog2((R*M)**N)), 
+    parameter BOUT  = 24            // BOUT=(BIN + N*$clog2((R*M))), 
 ) (
     input   wire                clk         ,
     input   wire                rst         ,
@@ -79,27 +79,60 @@ module cic_dec_filter #(
     generate
         genvar j;
         for ( j=0 ; j<N ; j=j+1 ) begin :LOOP2
-            reg  [BOUT-1:0]comb;
+            reg  [BOUT-1:0]comb[0:M-1];
             wire [BOUT-1:0]sub;   
+            integer k;
             if ( j == 0 ) begin
-                assign sub = dec_out - comb;
-                always@(posedge clk )begin
-                    if (rst==1'b1)begin
-                        comb <= {(BOUT){1'd0}};
-                    end else begin
-                        comb <= (dval) ? dec_out : comb;
-                    end
-                end  
+                if (M==1) begin
+                    assign sub = dec_out - comb[0];
+                    always@(posedge clk )begin
+                        if (rst==1'b1)begin
+                            comb[0] <= {(BOUT){1'd0}};
+                        end else begin
+                            comb[0] <= (dval) ? dec_out : comb[0];
+                        end
+                    end  
+                end else begin
+                    assign sub = dec_out - comb[M-1];
+                    always@(posedge clk )begin
+                        if (rst==1'b1)begin
+                            for (k = 0; k<M; k=k+1) begin
+                                comb[k] <= {(BOUT){1'd0}};
+                            end
+                        end else if (dval) begin
+                            comb[0] <= dec_out;
+                            for (k = 1; k<M; k=k+1) begin
+                                comb[k] <= comb[k-1];
+                            end
+                        end 
+                    end  
+                end
             end else begin
-                assign sub = LOOP2[j-1].sub - comb;
-                always@(posedge clk )begin
-                    if (rst==1'b1)begin
-                        comb <= {(BOUT){1'd0}};
-                    end else begin
-                        comb <= (dval) ? LOOP2[j-1].sub : comb;
-                    end
-                        
-                end  
+                if (M==1) begin
+                    assign sub = LOOP2[j-1].sub - comb[0];
+                    always@(posedge clk )begin
+                        if (rst==1'b1)begin
+                            comb[0] <= {(BOUT){1'd0}};
+                        end else begin
+                            comb[0] <= (dval) ? LOOP2[j-1].sub : comb[0];
+                        end
+                    end  
+                end else begin
+                    assign sub = LOOP2[j-1].sub - comb[M-1];
+                    always@(posedge clk )begin
+                        if (rst==1'b1)begin
+                            for (k = 0; k<M; k=k+1) begin
+                                comb[k] <= {(BOUT){1'd0}};
+                            end
+                        end else if(dval)begin
+                            comb[0] <=  LOOP2[j-1].sub;
+                            for (k = 1; k<M; k=k+1) begin
+                                comb[k] <= comb[k-1];
+                            end
+                        end
+                    end 
+                end
+                
             end
         end
         endgenerate

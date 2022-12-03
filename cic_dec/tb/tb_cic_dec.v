@@ -10,11 +10,11 @@ module tb_cic_dec;
 
 // fir_with_mult_ip Parameters
 
-    parameter R     = 16;           // Decimation factor
-    parameter M     = 1 ;           // Differential delay 1
-    parameter N     = 3 ;           // Number of stages
+    parameter R     = 16 ;          // Decimation factor
+    parameter M     = 2 ;           // Differential delay 1
+    parameter N     = 5 ;           // Number of stages
     parameter BIN   = 12;           // Input data width
-    parameter BOUT=(BIN + N*$clog2(R));
+    parameter BOUT=(BIN + N*$clog2(R*M));
     parameter PERIOD = 10;
 
     parameter   SIGNAL_SOURCE_LEN = 200;
