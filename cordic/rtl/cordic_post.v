@@ -7,7 +7,7 @@
 // Editor 	 : Vscode, tab size (4)
 // Version	 : v1.0  
 // Functions : calculate the final result of cordic, this module needs to 
-//             correct the amp by 0.60725 
+//             correct the amp by 0.60725 , this module is 6 clocks delay in total
 //             0.60725 ≌ (1/2 + 1/8 - 1/64 - 1/512) - ((1/2 + 1/8 - 1/64 - 1/512)/4096)   
 // License	 : License: LGPL-3.0-or-later
 // -----------------------------------------------------------------------------
@@ -197,6 +197,7 @@ module cordic_post #(
         end
     end
 
+    // restore the info 1clk
     always @(posedge clk ) begin
         if (rst==1'b1) begin
             po_dv <= 1'b0;
@@ -205,21 +206,22 @@ module cordic_post #(
         end else if (dv_int5 == 1'b1) begin
             po_dv <= 1'b1;
             case (info_int5[AW+2-1 -:2])
+                // x>0, y>0, first quarant
                 2'b00 : begin
                     po_x <= x_diff_gain_r1;
                     po_y <= y_diff_gain_r1;
                 end
-
+                // x>0, y<0, fourth quarant
                 2'b01 : begin
                     po_x <= x_diff_gain_r1;
                     po_y <= ~y_diff_gain_r1 + 1'b1;
                 end
-
+                // x<0,y>0, second quarant
                 2'b10 : begin
                     po_x <= ~x_diff_gain_r1 + 1'b1;
                     po_y <= y_diff_gain_r1 ;
                 end
-
+                // x<0,y<0, third quarant
                 2'b11 : begin
                     po_x <= ~x_diff_gain_r1 + 1'b1;
                     po_y <= ~y_diff_gain_r1 + 1'b1;
@@ -292,6 +294,7 @@ module cordic_post #(
     end
     
     //----------------po_dv_r, po_angle_r------------------
+    // delay 4 clocks
     reg 	[AW*4-1:0]	po_angle_r ;
     always @(posedge clk) begin
         if (rst==1'b1) begin

@@ -6,7 +6,7 @@
 // Revise 	 : 2022-
 // Editor 	 : Vscode, tab size (4)
 // Version	 : v1.0  
-// Functions : Top module of cordic core
+// Functions : Top module of cordic core, 1+6+STAGE clocks delay in total
 // License	  : License: LGPL-3.0-or-later
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -44,6 +44,7 @@ module cordic_core #(
     wire [AW+2-1:0]     int_po_info [STAGE-1:0]    ;
     wire                int_po_dv   [STAGE-1:0]    ;
 
+    // 1 clock delay
     cordic_pre#(
         .CORDIC_MODE ( CORDIC_MODE ),
         .IDW         ( IDW ),
@@ -63,7 +64,7 @@ module cordic_core #(
         .po_info     ( pre_po_info     )
     );
 
-    
+    // STAGE clock delay
     generate
         genvar i;
         for ( i=0; i < STAGE ; i=i +1) begin
@@ -112,6 +113,7 @@ module cordic_core #(
         
     endgenerate
 
+    //6 clock delay
     cordic_post#(
         .CORDIC_MODE ( CORDIC_MODE ),
         .DW          ( ODW ),

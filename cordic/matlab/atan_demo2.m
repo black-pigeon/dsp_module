@@ -2,7 +2,7 @@
 clc
 x=10;
 y=20;
-N=6;
+N=16;
 
 MAX_times=12;
 x_n=zeros(MAX_times,1);
